@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -48,10 +54,17 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Get version from tag
+      - name: Get version
         id: version
         shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "TAG=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build binary
         shell: bash
@@ -85,6 +98,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "TAG=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -113,16 +137,13 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
-      - name: Get version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: ${{ steps.version.outputs.TAG }}
           body: |
-            ## dktop ${{ steps.version.outputs.VERSION }}
+            ## dktop ${{ steps.version.outputs.TAG }}
 
             ### Installation
 
@@ -131,22 +152,22 @@ jobs:
             #### macOS
             ```bash
             # Apple Silicon (M1/M2/M3)
-            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-darwin-arm64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.TAG }}/dktop-darwin-arm64
             chmod +x dktop && sudo mv dktop /usr/local/bin/
 
             # Intel
-            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-darwin-amd64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.TAG }}/dktop-darwin-amd64
             chmod +x dktop && sudo mv dktop /usr/local/bin/
             ```
 
             #### Linux
             ```bash
             # x86_64
-            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-linux-amd64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.TAG }}/dktop-linux-amd64
             chmod +x dktop && sudo mv dktop /usr/local/bin/
 
             # ARM64
-            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-linux-arm64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.TAG }}/dktop-linux-arm64
             chmod +x dktop && sudo mv dktop /usr/local/bin/
             ```
 
@@ -159,5 +180,6 @@ jobs:
             release/*
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
