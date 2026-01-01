@@ -1,4 +1,4 @@
-module github.com/seb/dktop
+module github.com/seb07-cloud/dktop
 
 go 1.24.0
 

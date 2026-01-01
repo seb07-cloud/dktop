@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/seb/dktop/internal/config"
-	"github.com/seb/dktop/internal/docker"
+	"github.com/seb07-cloud/dktop/internal/config"
+	"github.com/seb07-cloud/dktop/internal/docker"
 )
 
 type Daemon struct {

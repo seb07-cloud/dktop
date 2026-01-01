@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/seb/dktop/internal/theme"
+	"github.com/seb07-cloud/dktop/internal/theme"
 )
 
 type LogsPanel struct {

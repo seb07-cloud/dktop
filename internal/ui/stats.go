@@ -5,8 +5,8 @@ import (
 
 	"github.com/NimbleMarkets/ntcharts/sparkline"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/seb/dktop/internal/docker"
-	"github.com/seb/dktop/internal/theme"
+	"github.com/seb07-cloud/dktop/internal/docker"
+	"github.com/seb07-cloud/dktop/internal/theme"
 )
 
 const sparklineHeight = 4

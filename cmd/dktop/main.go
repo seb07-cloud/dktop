@@ -6,13 +6,12 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/seb/dktop/internal/config"
-	"github.com/seb/dktop/internal/daemon"
-	"github.com/seb/dktop/internal/docker"
-	"github.com/seb/dktop/internal/ui"
+	"github.com/seb07-cloud/dktop/internal/config"
+	"github.com/seb07-cloud/dktop/internal/daemon"
+	"github.com/seb07-cloud/dktop/internal/docker"
+	"github.com/seb07-cloud/dktop/internal/ui"
+	"github.com/seb07-cloud/dktop/internal/version"
 )
-
-const version = "0.1.0"
 
 const logo = `
     ██████╗ ██╗  ██╗████████╗ ██████╗ ██████╗
@@ -61,7 +60,7 @@ func main() {
 			runDaemon()
 			return
 		case "version":
-			fmt.Printf("dktop version %s\n", version)
+			fmt.Printf("dktop version %s\n", version.String())
 			return
 		case "help", "-h", "--help":
 			fmt.Print(logo)
