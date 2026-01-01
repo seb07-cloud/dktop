@@ -33,20 +33,27 @@
 
 ## Installation
 
+### Homebrew (Recommended)
+
+```bash
+brew tap seb07-cloud/tap
+brew install dktop
+```
+
 ### Download Binary
 
-Download the latest release for your platform from the [Releases](https://github.com/seb/dktop/releases) page.
+Download the latest release for your platform from the [Releases](https://github.com/seb07-cloud/dktop/releases) page.
 
 #### macOS
 
 ```bash
 # Apple Silicon (M1/M2/M3)
-curl -Lo dktop https://github.com/seb/dktop/releases/latest/download/dktop-darwin-arm64
+curl -Lo dktop https://github.com/seb07-cloud/dktop/releases/latest/download/dktop-darwin-arm64
 chmod +x dktop
 sudo mv dktop /usr/local/bin/
 
 # Intel
-curl -Lo dktop https://github.com/seb/dktop/releases/latest/download/dktop-darwin-amd64
+curl -Lo dktop https://github.com/seb07-cloud/dktop/releases/latest/download/dktop-darwin-amd64
 chmod +x dktop
 sudo mv dktop /usr/local/bin/
 ```
@@ -55,36 +62,36 @@ sudo mv dktop /usr/local/bin/
 
 ```bash
 # x86_64
-curl -Lo dktop https://github.com/seb/dktop/releases/latest/download/dktop-linux-amd64
+curl -Lo dktop https://github.com/seb07-cloud/dktop/releases/latest/download/dktop-linux-amd64
 chmod +x dktop
 sudo mv dktop /usr/local/bin/
 
 # ARM64
-curl -Lo dktop https://github.com/seb/dktop/releases/latest/download/dktop-linux-arm64
+curl -Lo dktop https://github.com/seb07-cloud/dktop/releases/latest/download/dktop-linux-arm64
 chmod +x dktop
 sudo mv dktop /usr/local/bin/
 ```
 
 #### Windows
 
-Download `dktop-windows-amd64.exe` from the [Releases](https://github.com/seb/dktop/releases) page and add it to your PATH.
+Download `dktop-windows-amd64.exe` from the [Releases](https://github.com/seb07-cloud/dktop/releases) page and add it to your PATH.
 
 Or using PowerShell:
 
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/seb/dktop/releases/latest/download/dktop-windows-amd64.exe" -OutFile "dktop.exe"
+Invoke-WebRequest -Uri "https://github.com/seb07-cloud/dktop/releases/latest/download/dktop-windows-amd64.exe" -OutFile "dktop.exe"
 ```
 
 ### Go Install
 
 ```bash
-go install github.com/seb/dktop/cmd/dktop@latest
+go install github.com/seb07-cloud/dktop/cmd/dktop@latest
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/seb/dktop.git
+git clone https://github.com/seb07-cloud/dktop.git
 cd dktop
 go build -o dktop ./cmd/dktop
 ```
@@ -224,7 +231,7 @@ You can toggle autostart for individual containers in the TUI using the `a` key,
 go build -o dktop ./cmd/dktop
 
 # Build with version info
-go build -ldflags "-X github.com/seb/dktop/internal/version.Version=1.0.0" -o dktop ./cmd/dktop
+go build -ldflags "-X github.com/seb07-cloud/dktop/internal/version.Version=1.0.0" -o dktop ./cmd/dktop
 
 # Run tests
 go test ./...
