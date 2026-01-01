@@ -32,7 +32,6 @@ go.work.sum
 # .vscode/
 
 # Binary files
-dktop
 .claude/settings.local.json
 
 # macOS system files
