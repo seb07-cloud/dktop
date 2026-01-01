@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="media/demo.gif" alt="dktop demo" width="800">
+  <img src="media/screenshot.png" alt="dktop screenshot" width="800">
 </p>
 
 ## Features
