@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/seb/dktop/releases"><img src="https://img.shields.io/github/v/release/seb/dktop?style=flat-square" alt="Release"></a>
-  <a href="https://github.com/seb/dktop/actions"><img src="https://img.shields.io/github/actions/workflow/status/seb/dktop/release.yml?style=flat-square" alt="Build Status"></a>
-  <a href="https://github.com/seb/dktop/blob/main/LICENSE"><img src="https://img.shields.io/github/license/seb/dktop?style=flat-square" alt="License"></a>
-  <a href="https://goreportcard.com/report/github.com/seb/dktop"><img src="https://goreportcard.com/badge/github.com/seb/dktop?style=flat-square" alt="Go Report Card"></a>
+  <a href="https://github.com/seb07-cloud/dktop/releases><img src="https://img.shields.io/github/v/release/seb/dktop?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/seb07-cloud//dktop/actions"><img src="https://img.shields.io/github/actions/workflow/status/seb/dktop/release.yml?style=flat-square" alt="Build Status"></a>
+  <a href="https://github.com/seb07-cloud//dktop/blob/main/LICENSE"><img src="https://img.shields.io/github/license/seb/dktop?style=flat-square" alt="License"></a>
+  <a href="https://goreportcard.com/report/github.com/seb07-cloud//dktop"><img src="https://goreportcard.com/badge/github.com/seb/dktop?style=flat-square" alt="Go Report Card"></a>
 </p>
 
 <p align="center">
