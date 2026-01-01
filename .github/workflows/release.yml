@@ -1,0 +1,163 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # macOS
+          - os: darwin
+            arch: amd64
+            runner: macos-latest
+            ext: ""
+          - os: darwin
+            arch: arm64
+            runner: macos-latest
+            ext: ""
+          # Linux
+          - os: linux
+            arch: amd64
+            runner: ubuntu-latest
+            ext: ""
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            ext: ""
+          # Windows
+          - os: windows
+            arch: amd64
+            runner: windows-latest
+            ext: ".exe"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build binary
+        shell: bash
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          LDFLAGS="-s -w"
+          LDFLAGS="$LDFLAGS -X github.com/seb/dktop/internal/version.Version=$VERSION"
+          LDFLAGS="$LDFLAGS -X github.com/seb/dktop/internal/version.Commit=$COMMIT"
+          LDFLAGS="$LDFLAGS -X github.com/seb/dktop/internal/version.BuildDate=$DATE"
+
+          go build -ldflags "$LDFLAGS" -o dktop-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} ./cmd/dktop
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dktop-${{ matrix.os }}-${{ matrix.arch }}
+          path: dktop-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+
+          # Move binaries to release folder with correct names
+          for dir in artifacts/*/; do
+            for file in "$dir"*; do
+              if [ -f "$file" ]; then
+                filename=$(basename "$file")
+                cp "$file" "release/$filename"
+                chmod +x "release/$filename" 2>/dev/null || true
+              fi
+            done
+          done
+
+          ls -la release/
+
+      - name: Generate checksums
+        run: |
+          cd release
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## dktop ${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+
+            Download the appropriate binary for your platform below.
+
+            #### macOS
+            ```bash
+            # Apple Silicon (M1/M2/M3)
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-darwin-arm64
+            chmod +x dktop && sudo mv dktop /usr/local/bin/
+
+            # Intel
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-darwin-amd64
+            chmod +x dktop && sudo mv dktop /usr/local/bin/
+            ```
+
+            #### Linux
+            ```bash
+            # x86_64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-linux-amd64
+            chmod +x dktop && sudo mv dktop /usr/local/bin/
+
+            # ARM64
+            curl -Lo dktop https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.VERSION }}/dktop-linux-arm64
+            chmod +x dktop && sudo mv dktop /usr/local/bin/
+            ```
+
+            #### Windows
+            Download `dktop-windows-amd64.exe` and add to your PATH.
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums of all binaries.
+          files: |
+            release/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,23 @@
+dktop - Docker container manager
+
+┌─ Docker Stats ──────────────────────────────┬─ Images ─────────────────┐
+│ Containers: 5 (3 running) (0 paused) (2 stopped) │ REPOSITORY:TAG      SIZE │
+│ Images: 12                                       │ nginx:latest        142M │
+│                                                  │ postgres:15         379M │
+│ CPU:    ████████░░░░░░░░░░░░ 38.2%              │ redis:alpine         32M │
+│ Memory: ██████░░░░░░░░░░░░░░ 2.1G/8.0G          │ node:18-alpine      178M │
+├──────────────────────────────────────────────────┴──────────────────────────┤
+│ Containers                                                                   │
+│ NAME              STATUS        CPU     MEM     PORTS             IMAGE      │
+│ █web-server       Up 2 days    12.3%   256M    80->8080/tcp      nginx      │
+│  postgres-db      Up 2 days    2.1%    512M    5432/tcp          postgres   │
+│  redis-cache      Up 2 days    0.5%    32M     6379/tcp          redis      │
+│  api-service      Exited (0)   0.0%    0B      -                 node       │
+│  worker           Exited (1)   0.0%    0B      -                 node       │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Logs [web-server]                                                            │
+│ 2024-01-15T10:23:45 192.168.1.1 - - [15/Jan/2024:10:23:45] "GET / HTTP/1.1" │
+│ 2024-01-15T10:23:46 192.168.1.1 - - [15/Jan/2024:10:23:46] "GET /api HTTP/1.1│
+│ 2024-01-15T10:23:47 192.168.1.2 - - [15/Jan/2024:10:23:47] "POST /login HTTP/│
+└──────────────────────────────────────────────────────────────────────────────┘
+ s:start x:stop r:restart d:delete a:autostart  Tab:panel j/k:nav /:filter q:quit

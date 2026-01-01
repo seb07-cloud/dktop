@@ -1,0 +1,18 @@
+# dktop configuration file
+# Copy this file to ~/.config/dktop/config.yaml
+
+# Refresh rate in milliseconds (default: 1000)
+refresh_rate: 1000
+
+# Default view when starting dktop (containers or images)
+default_view: containers
+
+# Number of log lines to display (default: 100)
+log_lines: 100
+
+# List of container names or IDs to autostart
+# These containers will be started automatically when using the daemon
+autostart_list:
+  # - my-container
+  # - web-server
+  # - database
