@@ -109,7 +109,7 @@ func (c *Client) GetContainerStats(ctx context.Context, containerID string) (*Co
 	}
 	defer stats.Body.Close()
 
-	var statsJSON types.StatsJSON
+	var statsJSON container.StatsResponse
 	if err := decodeStats(stats.Body, &statsJSON); err != nil {
 		return nil, err
 	}

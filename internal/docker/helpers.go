@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 )
 
 func formatPorts(ports []types.Port) string {
@@ -30,7 +31,7 @@ func formatPorts(ports []types.Port) string {
 	return result
 }
 
-func calculateCPUPercent(stats *types.StatsJSON) float64 {
+func calculateCPUPercent(stats *container.StatsResponse) float64 {
 	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
 	systemDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
 
@@ -44,7 +45,7 @@ func calculateCPUPercent(stats *types.StatsJSON) float64 {
 	return 0.0
 }
 
-func decodeStats(reader io.Reader, stats *types.StatsJSON) error {
+func decodeStats(reader io.Reader, stats *container.StatsResponse) error {
 	return json.NewDecoder(reader).Decode(stats)
 }
 
