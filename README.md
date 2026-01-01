@@ -70,6 +70,7 @@ sudo mv dktop /usr/local/bin/
 Download `dktop-windows-amd64.exe` from the [Releases](https://github.com/seb/dktop/releases) page and add it to your PATH.
 
 Or using PowerShell:
+
 ```powershell
 Invoke-WebRequest -Uri "https://github.com/seb/dktop/releases/latest/download/dktop-windows-amd64.exe" -OutFile "dktop.exe"
 ```
@@ -144,36 +145,37 @@ dktop help
 
 ## Layout
 
-```
+```ini
     ██████╗ ██╗  ██╗████████╗ ██████╗ ██████╗
     ██╔══██╗██║ ██╔╝╚══██╔══╝██╔═══██╗██╔══██╗                              v1.0.0
     ██║  ██║█████╔╝    ██║   ██║   ██║██████╔╝
     ██║  ██║██╔═██╗    ██║   ██║   ██║██╔═══╝
     ██████╔╝██║  ██╗   ██║   ╚██████╔╝██║
     ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝
-╭─ Docker Stats ─────────────────────────────╮╭─ Images ──────────────────────╮
+╭─ Docker Stats ─────────────────────────────╮╭─ Images ─────────────────────────╮
 │ Containers: 5 (3 running) (0 paused) (2 stopped)│ REPOSITORY:TAG          SIZE │
-│ Images: 12                                 ││ nginx:alpine           43.2M │
-│                                            ││ redis:alpine           32.1M │
-│ CPU: 38.2%   ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄▅         ││ postgres:alpine       241.2M │
-│ MEM: 2.1G/8.0G   ▄▄▄▅▅▅▅▄▄▄▄▄▄▄▄▄        ││                              │
-╰────────────────────────────────────────────╯╰──────────────────────────────╯
-╭─ Containers ─────────────────────────────────────────────────────────────────╮
-│ NAME              STATUS        CPU     MEM     PORTS             IMAGE      │
-│ █nginx           Up 2 days    12.3%   256M    80->8080/tcp      nginx      │
-│  postgres        Up 2 days    2.1%    512M    5432/tcp          postgres   │
-│  redis           Up 2 days    0.5%    32M     6379/tcp          redis      │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Logs [nginx] ───────────────────────────────────────────────────────────────╮
-│ 2024-01-15T10:23:45 192.168.1.1 - - "GET / HTTP/1.1" 200                     │
-│ 2024-01-15T10:23:46 192.168.1.1 - - "GET /api HTTP/1.1" 200                  │
-╰──────────────────────────────────────────────────────────────────────────────╯
+│ Images: 12                                 ││ nginx:alpine           43.2M     │
+│                                            ││ redis:alpine           32.1M     │
+│ CPU: 38.2%   ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄▅           ││ postgres:alpine       241.2M     │
+│ MEM: 2.1G/8.0G   ▄▄▄▅▅▅▅▄▄▄▄▄▄▄▄▄          ││                                  │
+╰────────────────────────────────────────────╯╰──────────────────────────────────╯
+╭─ Containers ───────────────────────────────────────────────────────────────────╮
+│ NAME              STATUS        CPU     MEM     PORTS             IMAGE        │
+│ █nginx           Up 2 days    12.3%   256M    80->8080/tcp      nginx          │
+│  postgres        Up 2 days    2.1%    512M    5432/tcp          postgres       │
+│  redis           Up 2 days    0.5%    32M     6379/tcp          redis          │
+╰────────────────────────────────────────────────────────────────────────────────╯
+╭─ Logs [nginx] ─────────────────────────────────────────────────────────────────╮
+│ 2024-01-15T10:23:45 192.168.1.1 - - "GET / HTTP/1.1" 200                       │
+│ 2024-01-15T10:23:46 192.168.1.1 - - "GET /api HTTP/1.1" 200                    │
+╰────────────────────────────────────────────────────────────────────────────────╯
  s:start  x:stop  r:restart  d:delete  a:autostart  Tab:panel  j/k:nav  q:quit
 ```
 
 ## Configuration
 
 Config file location:
+
 - **macOS/Linux:** `~/.config/dktop/config.yaml`
 - **Windows:** `%APPDATA%\dktop\config.yaml`
 
@@ -204,15 +206,16 @@ dktop daemon
 When a container in the autostart list stops, the daemon will automatically restart it.
 
 You can toggle autostart for individual containers in the TUI using the `a` key, which:
+
 1. Adds/removes the container from the config's autostart list
 2. Sets the Docker restart policy to `always` or `no`
 
 ## Requirements
 
 - Docker daemon running and accessible
-  - **macOS:** Docker Desktop
-  - **Linux:** Docker Engine or Docker Desktop
-  - **Windows:** Docker Desktop with WSL 2
+   - **macOS:** Docker Desktop
+   - **Linux:** Docker Engine or Docker Desktop
+   - **Windows:** Docker Desktop with WSL 2
 
 ## Building
 
