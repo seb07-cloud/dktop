@@ -183,3 +183,118 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-homebrew:
+    name: Update Homebrew Tap
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "TAG=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Wait for release assets
+        run: sleep 30
+
+      - name: Download and calculate checksums
+        id: checksums
+        run: |
+          TAG=${{ steps.version.outputs.TAG }}
+          BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+
+          SHA_DARWIN_ARM64=$(curl -sL "${BASE_URL}/dktop-darwin-arm64" | sha256sum | cut -d' ' -f1)
+          SHA_DARWIN_AMD64=$(curl -sL "${BASE_URL}/dktop-darwin-amd64" | sha256sum | cut -d' ' -f1)
+          SHA_LINUX_ARM64=$(curl -sL "${BASE_URL}/dktop-linux-arm64" | sha256sum | cut -d' ' -f1)
+          SHA_LINUX_AMD64=$(curl -sL "${BASE_URL}/dktop-linux-amd64" | sha256sum | cut -d' ' -f1)
+
+          echo "SHA_DARWIN_ARM64=${SHA_DARWIN_ARM64}" >> $GITHUB_OUTPUT
+          echo "SHA_DARWIN_AMD64=${SHA_DARWIN_AMD64}" >> $GITHUB_OUTPUT
+          echo "SHA_LINUX_ARM64=${SHA_LINUX_ARM64}" >> $GITHUB_OUTPUT
+          echo "SHA_LINUX_AMD64=${SHA_LINUX_AMD64}" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: seb07-cloud/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update formula
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          TAG=${{ steps.version.outputs.TAG }}
+
+          cat > homebrew-tap/Formula/dktop.rb << 'EOF'
+          class Dktop < Formula
+            desc "Docker container manager with a btop-style terminal interface"
+            homepage "https://github.com/seb07-cloud/dktop"
+            version "$VERSION"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/seb07-cloud/dktop/releases/download/$TAG/dktop-darwin-arm64"
+                sha256 "$SHA_DARWIN_ARM64"
+              end
+              on_intel do
+                url "https://github.com/seb07-cloud/dktop/releases/download/$TAG/dktop-darwin-amd64"
+                sha256 "$SHA_DARWIN_AMD64"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/seb07-cloud/dktop/releases/download/$TAG/dktop-linux-arm64"
+                sha256 "$SHA_LINUX_ARM64"
+              end
+              on_intel do
+                url "https://github.com/seb07-cloud/dktop/releases/download/$TAG/dktop-linux-amd64"
+                sha256 "$SHA_LINUX_AMD64"
+              end
+            end
+
+            def install
+              if OS.mac?
+                if Hardware::CPU.arm?
+                  bin.install "dktop-darwin-arm64" => "dktop"
+                else
+                  bin.install "dktop-darwin-amd64" => "dktop"
+                end
+              elsif OS.linux?
+                if Hardware::CPU.arm?
+                  bin.install "dktop-linux-arm64" => "dktop"
+                else
+                  bin.install "dktop-linux-amd64" => "dktop"
+                end
+              end
+            end
+
+            test do
+              assert_match "dktop", shell_output("#{bin}/dktop version")
+            end
+          end
+          EOF
+
+          # Replace variables
+          sed -i "s/\$VERSION/${VERSION}/g" homebrew-tap/Formula/dktop.rb
+          sed -i "s/\$TAG/${TAG}/g" homebrew-tap/Formula/dktop.rb
+          sed -i "s/\$SHA_DARWIN_ARM64/${{ steps.checksums.outputs.SHA_DARWIN_ARM64 }}/g" homebrew-tap/Formula/dktop.rb
+          sed -i "s/\$SHA_DARWIN_AMD64/${{ steps.checksums.outputs.SHA_DARWIN_AMD64 }}/g" homebrew-tap/Formula/dktop.rb
+          sed -i "s/\$SHA_LINUX_ARM64/${{ steps.checksums.outputs.SHA_LINUX_ARM64 }}/g" homebrew-tap/Formula/dktop.rb
+          sed -i "s/\$SHA_LINUX_AMD64/${{ steps.checksums.outputs.SHA_LINUX_AMD64 }}/g" homebrew-tap/Formula/dktop.rb
+
+      - name: Commit and push
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/dktop.rb
+          git commit -m "Update dktop to ${{ steps.version.outputs.TAG }}"
+          git push
