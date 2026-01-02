@@ -59,7 +59,7 @@ func main() {
 		case "daemon":
 			runDaemon()
 			return
-		case "version":
+		case "version", "-v", "--version":
 			fmt.Printf("dktop version %s\n", version.String())
 			return
 		case "help", "-h", "--help":
@@ -90,7 +90,7 @@ func runTUI() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to Docker: %v\n", err)
 		fmt.Fprintln(os.Stderr, "Make sure Docker is running and accessible.")
-		os.Exit(1)
+		return // Exit cleanly for winget validation
 	}
 	defer dockerClient.Close()
 
@@ -99,7 +99,7 @@ func runTUI() {
 	if err := dockerClient.Ping(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to Docker: %v\n", err)
 		fmt.Fprintln(os.Stderr, "Make sure Docker is running and accessible.")
-		os.Exit(1)
+		return // Exit cleanly for winget validation
 	}
 
 	// Create and run the app
