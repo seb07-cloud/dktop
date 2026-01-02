@@ -56,13 +56,17 @@ func (p *ImagesPanel) GetFiltered() []docker.ImageInfo {
 	var filtered []docker.ImageInfo
 	filterLower := strings.ToLower(p.filter)
 	for _, img := range p.images {
+		matched := false
 		for _, tag := range img.Tags {
 			if strings.Contains(strings.ToLower(tag), filterLower) {
-				filtered = append(filtered, img)
+				matched = true
 				break
 			}
 		}
-		if strings.Contains(strings.ToLower(img.ID), filterLower) {
+		if !matched && strings.Contains(strings.ToLower(img.ID), filterLower) {
+			matched = true
+		}
+		if matched {
 			filtered = append(filtered, img)
 		}
 	}
