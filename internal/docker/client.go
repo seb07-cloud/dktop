@@ -89,7 +89,7 @@ func (c *Client) ListContainers(ctx context.Context) ([]ContainerInfo, error) {
 		ports := formatPorts(cont.Ports)
 
 		infos = append(infos, ContainerInfo{
-			ID:      cont.ID[:12],
+			ID:      cont.ID,
 			Name:    name,
 			Image:   cont.Image,
 			Status:  cont.Status,
@@ -206,13 +206,8 @@ func (c *Client) ListImages(ctx context.Context) ([]ImageInfo, error) {
 
 	var infos []ImageInfo
 	for _, img := range images {
-		id := img.ID
-		if strings.HasPrefix(id, "sha256:") {
-			id = id[7:19] // Get first 12 chars after sha256:
-		}
-
 		infos = append(infos, ImageInfo{
-			ID:      id,
+			ID:      img.ID,
 			Tags:    img.RepoTags,
 			Size:    img.Size,
 			Created: time.Unix(img.Created, 0),

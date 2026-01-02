@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -220,6 +221,11 @@ func (a *App) fetchLogs() tea.Cmd {
 
 		logs, err := a.dockerClient.GetContainerLogs(ctx, containerID, 100)
 		if err != nil {
+			// Ignore "no such container" - container was deleted
+			if strings.Contains(err.Error(), "No such container") ||
+				strings.Contains(err.Error(), "no such container") {
+				return nil
+			}
 			return errMsg(err)
 		}
 		return logsMsg(logs)
@@ -245,6 +251,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		cmds = append(cmds, a.tickCmd())
 		cmds = append(cmds, a.fetchContainers())
+		cmds = append(cmds, a.fetchImages())
 		cmds = append(cmds, a.fetchSystemStats())
 
 		// Fetch stats for running containers
@@ -263,7 +270,6 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.containers = msg
 		a.containersPanel.Update(a.containers)
 		a.updatePanelSizes() // Resize panels based on container count
-		a.err = nil          // Clear any stale errors (e.g., from deleted containers)
 
 	case containerStatsMsg:
 		// Update container stats
@@ -359,6 +365,9 @@ func (a *App) handleKeyPress(msg tea.KeyMsg) tea.Cmd {
 		}
 		return nil
 	}
+
+	// Clear error on any key press in normal mode
+	a.err = nil
 
 	// Normal mode
 	switch msg.String() {
@@ -544,11 +553,14 @@ func (a *App) startSelectedContainer() tea.Cmd {
 		return nil
 	}
 
+	// Copy ID to avoid race condition with tick refresh
+	containerID := selected.ID
+
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		if err := a.dockerClient.StartContainer(ctx, selected.ID); err != nil {
+		if err := a.dockerClient.StartContainer(ctx, containerID); err != nil {
 			return errMsg(err)
 		}
 		return nil
@@ -561,11 +573,14 @@ func (a *App) stopSelectedContainer() tea.Cmd {
 		return nil
 	}
 
+	// Copy ID to avoid race condition with tick refresh
+	containerID := selected.ID
+
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		if err := a.dockerClient.StopContainer(ctx, selected.ID); err != nil {
+		if err := a.dockerClient.StopContainer(ctx, containerID); err != nil {
 			return errMsg(err)
 		}
 		return nil
@@ -578,11 +593,14 @@ func (a *App) restartSelectedContainer() tea.Cmd {
 		return nil
 	}
 
+	// Copy ID to avoid race condition with tick refresh
+	containerID := selected.ID
+
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		if err := a.dockerClient.RestartContainer(ctx, selected.ID); err != nil {
+		if err := a.dockerClient.RestartContainer(ctx, containerID); err != nil {
 			return errMsg(err)
 		}
 		return nil
@@ -595,13 +613,21 @@ func (a *App) deleteSelectedContainer() tea.Cmd {
 		return nil
 	}
 
+	// Copy values to avoid race condition with tick refresh
+	containerID := selected.ID
+	isRunning := selected.State == "running"
+
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		// Force remove if running
-		force := selected.State == "running"
-		if err := a.dockerClient.RemoveContainer(ctx, selected.ID, force); err != nil {
+		if err := a.dockerClient.RemoveContainer(ctx, containerID, isRunning); err != nil {
+			// Ignore "no such container" - it's already deleted
+			if strings.Contains(err.Error(), "No such container") ||
+				strings.Contains(err.Error(), "no such container") {
+				return nil
+			}
 			return errMsg(err)
 		}
 		return nil
@@ -614,11 +640,19 @@ func (a *App) deleteSelectedImage() tea.Cmd {
 		return nil
 	}
 
+	// Copy ID to avoid race condition with tick refresh
+	imageID := selected.ID
+
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		if err := a.dockerClient.RemoveImage(ctx, selected.ID, false); err != nil {
+		if err := a.dockerClient.RemoveImage(ctx, imageID, false); err != nil {
+			// Ignore "no such image" - it's already deleted
+			if strings.Contains(err.Error(), "No such image") ||
+				strings.Contains(err.Error(), "no such image") {
+				return nil
+			}
 			return errMsg(err)
 		}
 		return nil
@@ -631,11 +665,15 @@ func (a *App) toggleAutostart() tea.Cmd {
 		return nil
 	}
 
+	// Copy values to avoid race condition with tick refresh
+	containerID := selected.ID
+	containerName := selected.Name
+
 	// Toggle in config
-	if a.config.IsAutostart(selected.Name) {
-		a.config.RemoveAutostart(selected.Name)
+	if a.config.IsAutostart(containerName) {
+		a.config.RemoveAutostart(containerName)
 	} else {
-		a.config.AddAutostart(selected.Name)
+		a.config.AddAutostart(containerName)
 	}
 
 	// Save config
@@ -647,11 +685,11 @@ func (a *App) toggleAutostart() tea.Cmd {
 		defer cancel()
 
 		policy := "no"
-		if a.config.IsAutostart(selected.Name) {
+		if a.config.IsAutostart(containerName) {
 			policy = "always"
 		}
 
-		if err := a.dockerClient.SetRestartPolicy(ctx, selected.ID, policy); err != nil {
+		if err := a.dockerClient.SetRestartPolicy(ctx, containerID, policy); err != nil {
 			return errMsg(err)
 		}
 		return nil

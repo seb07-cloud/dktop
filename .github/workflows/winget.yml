@@ -1,0 +1,34 @@
+name: Publish to WinGet
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0 without v prefix)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish to WinGet
+    runs-on: windows-latest
+    steps:
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Submit to WinGet
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: seb07-cloud.dktop
+          version: ${{ steps.version.outputs.VERSION }}
+          installers-regex: 'dktop-windows-amd64\.exe$'
+          token: ${{ secrets.WINGET_TOKEN }}
